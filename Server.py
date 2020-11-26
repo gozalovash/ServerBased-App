@@ -1,9 +1,12 @@
 import socket, argparse
+import requests
+from bs4 import BeautifulSoup
 
 INTERFACE = '127.0.0.1'
 PORT = 1060
 BUFFSIZE = 4096
 SEPARATOR = "@"
+URL = "http://"
 
 class Server:
     def __init__(self, interface, port):
@@ -22,6 +25,7 @@ class Server:
             print("Accepted connection from ", sockname)
             print('Receiving web Page: ')
             webpage = sc.recv(BUFFSIZE).decode()
+            print (webpage)
             result1, result2 = self.performCalculating(webpage)
             print('Sending result to the client ...')
             sc.send(f"{result1}{SEPARATOR}{result2}".encode())
@@ -29,4 +33,12 @@ class Server:
             print('Result sent, session closed!\n')
 
     def performCalculating(self, webpage):
-        return 1, 2
+        r = requests.get(URL+webpage)
+        soup = BeautifulSoup(r.content, 'html5lib')
+        images_count = len(soup.find_all('img'))
+        p_list = soup.find_all('p')
+        p_count = 0
+        for p in p_list:
+            if not p.find_all('p'):
+                p_count += 1
+        return images_count, p_count
